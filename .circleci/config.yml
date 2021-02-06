@@ -10,13 +10,12 @@ jobs:
       - run:
           name: terraform init & plan
           command: |
-            terraform init -input=false
+            terraform init -input=false -backend-config="bucket=${TF_BUCKET}" -backend-config="key=${TF_KEY}" -backend-config="region=${TF_REGION}"
             terraform plan -out tfapply -var-file variables.tfvars
       - persist_to_workspace:
           root: .
           paths:
             - .
-
   apply:
     docker:
       - image: hashicorp/terraform:light
@@ -31,7 +30,6 @@ jobs:
           root: .
           paths:
             - .
-
   plan-destroy:
     docker:
       - image: hashicorp/terraform:light
@@ -46,7 +44,6 @@ jobs:
           root: .
           paths:
             - .
-
   destroy:
     docker:
       - image: hashicorp/terraform:light
@@ -57,7 +54,6 @@ jobs:
           name: terraform destroy
           command: |
             terraform apply -auto-approve tfdestroy
-
 workflows:
   version: 2
   plan_approve_apply:
