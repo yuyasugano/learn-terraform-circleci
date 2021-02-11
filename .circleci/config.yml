@@ -1,22 +1,30 @@
 version: 2
 
 jobs:
-  plan-apply:
+  default-plan-apply:
     working_directory: /tmp/project
     docker:
       - image: hashicorp/terraform:light
     steps:
       - checkout
       - run:
-          name: terraform init & plan
+          name: terraform init
           command: |
             terraform init -input=false -backend-config="bucket=${TF_BUCKET}" -backend-config="key=${TF_KEY}" -backend-config="region=${TF_REGION}"
-            terraform plan -out tfapply -var-file variables.tfvars
+      - run:
+          name: terraform workspace
+          command: |
+            terraform workspace new default
+            terraform workspace select default
+      - run:
+          name: terraform plan
+          command: |
+            terraform plan -out tfapply -var-file variables.tfvars.default
       - persist_to_workspace:
           root: .
           paths:
             - .
-  apply:
+  default-apply:
     docker:
       - image: hashicorp/terraform:light
     steps:
@@ -30,7 +38,7 @@ jobs:
           root: .
           paths:
             - .
-  plan-destroy:
+  default-plan-destroy:
     docker:
       - image: hashicorp/terraform:light
     steps:
@@ -39,12 +47,12 @@ jobs:
       - run:
           name: terraform create destroy plan
           command: |
-            terraform plan -destroy -out tfdestroy -var-file variables.tfvars
+            terraform plan -destroy -out tfdestroy -var-file variables.tfvars.default
       - persist_to_workspace:
           root: .
           paths:
             - .
-  destroy:
+  default-destroy:
     docker:
       - image: hashicorp/terraform:light
     steps:
@@ -58,21 +66,33 @@ workflows:
   version: 2
   plan_approve_apply:
     jobs:
-      - plan-apply
-      - hold-apply:
+      - default-plan-apply
+          filters:
+            branches:
+              only: master
+      - default-hold-apply:
           type: approval
           requires:
-            - plan-apply
-      - apply:
+            - default-plan-apply
+      - default-apply:
           requires:
-            - hold-apply
-      - plan-destroy:
+            - default-hold-apply
+          filters:
+            branches:
+              only: master
+      - default-plan-destroy:
           requires:
-            - apply
-      - hold-destroy:
+            - default-apply
+          filters:
+            branches:
+              only: master
+      - default-hold-destroy:
           type: approval
           requires:
-            - plan-destroy
-      - destroy:
+            - default-plan-destroy
+      - default-destroy:
           requires:
             - hold-destroy
+          filters:
+            branches:
+              only: master

@@ -16,6 +16,11 @@ provider "aws" {
   region = var.region
 }
 
+module "ec2" {
+  source = "./modules/ec2"
+  name = var.ec2_name
+}
+
 resource "random_uuid" "randomid" {}
 
 resource "aws_iam_user" "circleci" {
