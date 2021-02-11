@@ -21,7 +21,7 @@ resource "aws_instance" "example" {
 
   tags = {
     Name = var.name,
-    Environment = ${terraform.workspace}
+    Environment = "ec2 - ${terraform.workspace}"
   }
 
   provisioner "local-exec" {
@@ -30,7 +30,7 @@ resource "aws_instance" "example" {
 }
 
 resource "aws_key_pair" "example" {
-  key_name = ${terraform.workspace}
+  key_name = "pubkey-${terraform.workspace}"
   public_key = file("./example.pub")
 }
 
