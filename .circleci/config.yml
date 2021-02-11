@@ -92,7 +92,7 @@ workflows:
             - default-plan-destroy
       - default-destroy:
           requires:
-            - hold-destroy
+            - default-hold-destroy
           filters:
             branches:
               only: master
