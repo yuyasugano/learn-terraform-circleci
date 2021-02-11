@@ -14,8 +14,7 @@ jobs:
       - run:
           name: terraform workspace
           command: |
-            terraform workspace new default
-            terraform workspace select default
+            terraform workspace select -or-create default
       - run:
           name: terraform plan
           command: |
